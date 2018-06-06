@@ -1,10 +1,10 @@
-package com.example.akat2.smack
+package com.example.akat2.smack.controller
 
-import android.content.res.Resources
 import android.graphics.Color
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import com.example.akat2.smack.R
 import kotlinx.android.synthetic.main.activity_create_user.*
 import java.util.*
 
