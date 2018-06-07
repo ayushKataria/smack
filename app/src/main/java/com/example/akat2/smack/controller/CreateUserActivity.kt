@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import com.example.akat2.smack.R
 import com.example.akat2.smack.services.AuthService
 import kotlinx.android.synthetic.main.activity_create_user.*
@@ -51,11 +52,20 @@ class CreateUserActivity : AppCompatActivity() {
     }
 
     fun createUserClicked(view: View) {
-        AuthService.registerUser(this, "j@j.com", "123456") { complete->
-            if(complete){
+        val email = createEmailText.text.toString()
+        val password = createPasswordText.text.toString()
 
-            }else {
-
+        AuthService.registerUser(this, email, password) { registerSuccess ->
+            if(registerSuccess){
+                AuthService.loginUser(this, email, password) { loginSuccess ->
+                    if(loginSuccess) {
+                        //Successful Login
+//                        Toast.makeText(this, AuthService.userEmail + AuthService.authToken, Toast.LENGTH_LONG).show()
+                    }else {
+                        //Failed Login
+                        Toast.makeText(this, "Login Failed", Toast.LENGTH_LONG).show()
+                    }
+                }
             }
         }
     }
