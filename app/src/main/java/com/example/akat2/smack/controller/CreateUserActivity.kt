@@ -1,8 +1,9 @@
 package com.example.akat2.smack.controller
 
+import android.content.Intent
 import android.graphics.Color
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.Toast
 import com.example.akat2.smack.R
@@ -18,6 +19,7 @@ class CreateUserActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_user)
+        createProgressSpinner.visibility = View.INVISIBLE
     }
 
     fun generateUserAvatar(view: View) {
@@ -52,6 +54,8 @@ class CreateUserActivity : AppCompatActivity() {
     }
 
     fun createUserClicked(view: View) {
+        enableProgressSpinner(true)
+        val userName = createUserNameText.text.toString()
         val email = createEmailText.text.toString()
         val password = createPasswordText.text.toString()
 
@@ -60,13 +64,40 @@ class CreateUserActivity : AppCompatActivity() {
                 AuthService.loginUser(this, email, password) { loginSuccess ->
                     if(loginSuccess) {
                         //Successful Login
-//                        Toast.makeText(this, AuthService.userEmail + AuthService.authToken, Toast.LENGTH_LONG).show()
+                        AuthService.createUser(this, userName, email, userAvatar, avatarColor) {createSuccess ->
+                            if(createSuccess) {
+                                val mainIntent = Intent(this, MainActivity::class.java)
+                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                startActivity(mainIntent)
+                                enableProgressSpinner(false)
+                                finish()
+                            }else {
+                                errorToast()
+                            }
+                        }
                     }else {
-                        //Failed Login
-                        Toast.makeText(this, "Login Failed", Toast.LENGTH_LONG).show()
+                        errorToast()
                     }
                 }
+            }else {
+                errorToast()
             }
         }
+    }
+
+    fun errorToast() {
+        Toast.makeText(this, "Not able to create user, please try again", Toast.LENGTH_LONG).show()
+        enableProgressSpinner(false)
+    }
+
+    fun enableProgressSpinner(enable: Boolean) {
+        if(enable) {
+            createProgressSpinner.visibility = View.VISIBLE
+        }else {
+            createProgressSpinner.visibility = View.INVISIBLE
+        }
+        createUserButton.isEnabled = !enable
+        createAvatarImageView.isEnabled = !enable
+        backGrroundColorButton.isEnabled = !enable
     }
 }
