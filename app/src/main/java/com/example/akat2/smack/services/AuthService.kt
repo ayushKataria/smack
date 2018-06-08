@@ -69,7 +69,6 @@ object AuthService {
         }, Response.ErrorListener { error ->
             //Deal with errors
             Log.d("Error", "Could not login user: $error")
-            Toast.makeText(context, "Login failed", Toast.LENGTH_SHORT).show()
         }) {
             override fun getBodyContentType(): String {
                 return "application/json; charset=utf-8"

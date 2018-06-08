@@ -3,13 +3,18 @@ package com.example.akat2.smack.controller
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.PatternMatcher
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
+import android.util.Patterns
 import android.view.View
 import android.widget.Toast
 import com.example.akat2.smack.R
 import com.example.akat2.smack.services.AuthService
+import com.example.akat2.smack.utilities.BROADCAST_USER_DATA_CHANGE
 import kotlinx.android.synthetic.main.activity_create_user.*
 import java.util.*
+import java.util.regex.Pattern
 
 class CreateUserActivity : AppCompatActivity() {
 
@@ -59,35 +64,67 @@ class CreateUserActivity : AppCompatActivity() {
         val email = createEmailText.text.toString()
         val password = createPasswordText.text.toString()
 
-        AuthService.registerUser(this, email, password) { registerSuccess ->
-            if(registerSuccess){
-                AuthService.loginUser(this, email, password) { loginSuccess ->
-                    if(loginSuccess) {
-                        //Successful Login
-                        AuthService.createUser(this, userName, email, userAvatar, avatarColor) {createSuccess ->
-                            if(createSuccess) {
-                                val mainIntent = Intent(this, MainActivity::class.java)
-                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                                startActivity(mainIntent)
-                                enableProgressSpinner(false)
-                                finish()
-                            }else {
-                                errorToast()
+        if(isUserInfoValid()) {
+
+            AuthService.registerUser(this, email, password) { registerSuccess ->
+                if (registerSuccess) {
+                    AuthService.loginUser(this, email, password) { loginSuccess ->
+                        if (loginSuccess) {
+                            //Successful Login
+                            AuthService.createUser(this, userName, email, userAvatar, avatarColor) { createSuccess ->
+                                if (createSuccess) {
+
+                                    val userDataChange = Intent(BROADCAST_USER_DATA_CHANGE)
+                                    LocalBroadcastManager.getInstance(this).sendBroadcast(userDataChange)
+
+                                    enableProgressSpinner(false)
+                                    finish()
+                                }else {
+                                    errorToast()
+                                    enableProgressSpinner(false)
+                                }
                             }
+                        }else {
+                            errorToast()
+                            enableProgressSpinner(false)
                         }
-                    }else {
-                        errorToast()
                     }
+                }else {
+                    errorToast()
+                    enableProgressSpinner(false)
                 }
-            }else {
-                errorToast()
             }
+        }else {
+            enableProgressSpinner(false)
         }
     }
 
     fun errorToast() {
-        Toast.makeText(this, "Not able to create user, please try again", Toast.LENGTH_LONG).show()
-        enableProgressSpinner(false)
+        Toast.makeText(this, "Unable to create user, please try again", Toast.LENGTH_LONG).show()
+    }
+
+    fun isUserInfoValid(): Boolean {
+        val userName = createUserNameText.text.toString()
+        val email = createEmailText.text.toString()
+        val password = createPasswordText.text.toString()
+        var isValid = true
+
+        if(userName.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            isValid = false
+            Toast.makeText(this, "Make sure all the fields are filled in.", Toast.LENGTH_LONG).show()
+        }
+
+        if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
+            isValid = false
+            Toast.makeText(this, "Not a valid email", Toast.LENGTH_LONG).show()
+        }
+
+        if(password.length < 6) {
+            isValid = false
+            Toast.makeText(this, "Password length should be more than 6", Toast.LENGTH_LONG).show()
+        }
+
+        return isValid
     }
 
     fun enableProgressSpinner(enable: Boolean) {
