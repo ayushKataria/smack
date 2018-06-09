@@ -9,8 +9,13 @@ import android.os.Bundle
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.Toast
 import com.example.akat2.smack.R
 import com.example.akat2.smack.services.AuthService
 import com.example.akat2.smack.services.UserDataService
@@ -21,11 +26,12 @@ import kotlinx.android.synthetic.main.nav_header_main.*
 
 class MainActivity : AppCompatActivity() {
 
-            override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        hideKeyboard()
 
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
@@ -38,7 +44,7 @@ class MainActivity : AppCompatActivity() {
     private val userDataChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
 
-            if(AuthService.isLogggedIn){
+            if (AuthService.isLogggedIn) {
                 userNameNavHeader.text = UserDataService.name
                 userEmailNavHeader.text = UserDataService.email
 
@@ -61,15 +67,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun loginBtnNavClicked(view: View) {
-        if(AuthService.isLogggedIn) {
+        if (AuthService.isLogggedIn) {
             //Log out
             UserDataService.logout()
-            userNameNavHeader.text = "Please Login"
+            userNameNavHeader.text = ""
             userEmailNavHeader.text = ""
             userImageNavHeader.setImageResource(R.drawable.profiledefault)
             userImageNavHeader.setBackgroundColor(Color.TRANSPARENT)
             loginBtnNavHeader.text = "Login"
-        }else {
+        } else {
             val loginIntent = Intent(this, LoginActivity::class.java)
             startActivity(loginIntent)
         }
@@ -77,6 +83,36 @@ class MainActivity : AppCompatActivity() {
 
     fun addChannelClicked(view: View) {
         //add channel clicked
+        if (AuthService.isLogggedIn) {
+            val builder = AlertDialog.Builder(this)
+            val dialogView = LayoutInflater.from(this).inflate(R.layout.add_channel_dialog, null)
+
+            builder.setView(dialogView)
+                    .setPositiveButton("Add") { dialog, which ->
+                        val nameTextField = dialogView.findViewById<EditText>(R.id.addChannelNameText)
+                        val descTextField = dialogView.findViewById<EditText>(R.id.addChannelDescText)
+                        val channelName = nameTextField.text.toString()
+                        val channelDesc = descTextField.text.toString()
+
+                        //TODO:Add channel with name and description
+                        hideKeyboard()
+                    }
+                    .setNegativeButton("Cancel") { dialog, which ->
+                        //Cancel and close the dialog
+                        hideKeyboard()
+                    }
+                    .show()
+        } else {
+            Toast.makeText(this, "Mst be logged in to add channels", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun hideKeyboard() {
+        val inputManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+
+        if (inputManager.isAcceptingText) {
+            inputManager.hideSoftInputFromWindow(currentFocus.windowToken, 0)
+        }
     }
 
     fun sendMessageBtnClicked(view: View) {

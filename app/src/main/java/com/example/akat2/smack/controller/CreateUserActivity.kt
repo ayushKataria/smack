@@ -103,6 +103,17 @@ class CreateUserActivity : AppCompatActivity() {
         Toast.makeText(this, "Unable to create user, please try again", Toast.LENGTH_LONG).show()
     }
 
+    fun enableProgressSpinner(enable: Boolean) {
+        if(enable) {
+            createProgressSpinner.visibility = View.VISIBLE
+        }else {
+            createProgressSpinner.visibility = View.INVISIBLE
+        }
+        createUserButton.isEnabled = !enable
+        createAvatarImageView.isEnabled = !enable
+        backGrroundColorButton.isEnabled = !enable
+    }
+
     fun isUserInfoValid(): Boolean {
         val userName = createUserNameText.text.toString()
         val email = createEmailText.text.toString()
@@ -125,16 +136,5 @@ class CreateUserActivity : AppCompatActivity() {
         }
 
         return isValid
-    }
-
-    fun enableProgressSpinner(enable: Boolean) {
-        if(enable) {
-            createProgressSpinner.visibility = View.VISIBLE
-        }else {
-            createProgressSpinner.visibility = View.INVISIBLE
-        }
-        createUserButton.isEnabled = !enable
-        createAvatarImageView.isEnabled = !enable
-        backGrroundColorButton.isEnabled = !enable
     }
 }
