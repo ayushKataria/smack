@@ -20,18 +20,20 @@ import com.example.akat2.smack.R
 import com.example.akat2.smack.services.AuthService
 import com.example.akat2.smack.services.UserDataService
 import com.example.akat2.smack.utilities.BROADCAST_USER_DATA_CHANGE
+import com.example.akat2.smack.utilities.SOCKET_URL
+import io.socket.client.IO
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.nav_header_main.*
 
 class MainActivity : AppCompatActivity() {
 
+    val socket = IO.socket(SOCKET_URL)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-
-        hideKeyboard()
 
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
@@ -39,6 +41,12 @@ class MainActivity : AppCompatActivity() {
         toggle.syncState()
 
         LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
+    }
+
+    override fun onResume() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
+        socket.connect()
+        super.onResume()
     }
 
     private val userDataChangeReceiver = object : BroadcastReceiver() {
@@ -95,15 +103,14 @@ class MainActivity : AppCompatActivity() {
                         val channelDesc = descTextField.text.toString()
 
                         //TODO:Add channel with name and description
-                        hideKeyboard()
+                        socket.emit("newChannel", channelName, channelDesc)
                     }
                     .setNegativeButton("Cancel") { dialog, which ->
                         //Cancel and close the dialog
-                        hideKeyboard()
                     }
                     .show()
         } else {
-            Toast.makeText(this, "Mst be logged in to add channels", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Must be logged in to add channels", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -117,7 +124,13 @@ class MainActivity : AppCompatActivity() {
 
     fun sendMessageBtnClicked(view: View) {
         //send message
+        hideKeyboard()
     }
 
+    override fun onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(userDataChangeReceiver)
+        socket.disconnect()
+        super.onDestroy()
+    }
 
 }
