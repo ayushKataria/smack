@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Toast
 import com.example.akat2.smack.R
@@ -32,6 +33,13 @@ import kotlinx.android.synthetic.main.nav_header_main.*
 class MainActivity : AppCompatActivity() {
 
     val socket = IO.socket(SOCKET_URL)
+    lateinit var channelAdapter: ArrayAdapter<Channel>
+
+
+    private fun setupAdapters() {
+        channelAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, MessageService.channels)
+        channelList.adapter = channelAdapter
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         socket.on("channelCreated", onNewChannel)
 
         LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
+        setupAdapters()
     }
 
     override fun onResume() {
@@ -55,7 +64,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val userDataChangeReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
+        override fun onReceive(context: Context, intent: Intent?) {
 
             if (AuthService.isLogggedIn) {
                 userNameNavHeader.text = UserDataService.name
@@ -66,6 +75,12 @@ class MainActivity : AppCompatActivity() {
                 userImageNavHeader.setBackgroundColor(UserDataService.getAvatarColor(UserDataService.avatarColor))
 
                 loginBtnNavHeader.text = "Logout"
+
+                MessageService.getChannels(context) {complete ->
+                    if (complete) {
+                        channelAdapter.notifyDataSetChanged()
+                    }
+                }
             }
 
         }
@@ -88,6 +103,8 @@ class MainActivity : AppCompatActivity() {
             userImageNavHeader.setImageResource(R.drawable.profiledefault)
             userImageNavHeader.setBackgroundColor(Color.TRANSPARENT)
             loginBtnNavHeader.text = "Login"
+            MessageService.channels.clear()
+            channelAdapter.notifyDataSetChanged()
         } else {
             val loginIntent = Intent(this, LoginActivity::class.java)
             startActivity(loginIntent)
@@ -128,6 +145,8 @@ class MainActivity : AppCompatActivity() {
 
             val channel = Channel(channelName, channelDescription, channelId)
             MessageService.channels.add(channel)
+
+            channelAdapter.notifyDataSetChanged()
         }
     }
 
