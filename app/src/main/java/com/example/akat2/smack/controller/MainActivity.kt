@@ -17,11 +17,14 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Toast
 import com.example.akat2.smack.R
+import com.example.akat2.smack.model.Channel
 import com.example.akat2.smack.services.AuthService
+import com.example.akat2.smack.services.MessageService
 import com.example.akat2.smack.services.UserDataService
 import com.example.akat2.smack.utilities.BROADCAST_USER_DATA_CHANGE
 import com.example.akat2.smack.utilities.SOCKET_URL
 import io.socket.client.IO
+import io.socket.emitter.Emitter
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.nav_header_main.*
@@ -40,12 +43,14 @@ class MainActivity : AppCompatActivity() {
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
+        socket.connect()
+        socket.on("channelCreated", onNewChannel)
+
         LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
     }
 
     override fun onResume() {
         LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
-        socket.connect()
         super.onResume()
     }
 
@@ -111,6 +116,18 @@ class MainActivity : AppCompatActivity() {
                     .show()
         } else {
             Toast.makeText(this, "Must be logged in to add channels", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private val onNewChannel = Emitter.Listener { args ->
+        //Used to allow us to update ui like listview as Listeners callback is on a worker thread
+        runOnUiThread {
+            val channelName = args[0] as String
+            val channelDescription = args[1] as String
+            val channelId = args[2] as String
+
+            val channel = Channel(channelName, channelDescription, channelId)
+            MessageService.channels.add(channel)
         }
     }
 
