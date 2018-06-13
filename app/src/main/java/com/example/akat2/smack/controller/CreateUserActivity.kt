@@ -3,7 +3,6 @@ package com.example.akat2.smack.controller
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.os.PatternMatcher
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.util.Patterns
@@ -14,7 +13,6 @@ import com.example.akat2.smack.services.AuthService
 import com.example.akat2.smack.utilities.BROADCAST_USER_DATA_CHANGE
 import kotlinx.android.synthetic.main.activity_create_user.*
 import java.util.*
-import java.util.regex.Pattern
 
 class CreateUserActivity : AppCompatActivity() {
 
@@ -66,12 +64,12 @@ class CreateUserActivity : AppCompatActivity() {
 
         if(isUserInfoValid()) {
 
-            AuthService.registerUser(this, email, password) { registerSuccess ->
+            AuthService.registerUser(email, password) { registerSuccess ->
                 if (registerSuccess) {
-                    AuthService.loginUser(this, email, password) { loginSuccess ->
+                    AuthService.loginUser(email, password) { loginSuccess ->
                         if (loginSuccess) {
                             //Successful Login
-                            AuthService.createUser(this, userName, email, userAvatar, avatarColor) { createSuccess ->
+                            AuthService.createUser(userName, email, userAvatar, avatarColor) { createSuccess ->
                                 if (createSuccess) {
 
                                     val userDataChange = Intent(BROADCAST_USER_DATA_CHANGE)
