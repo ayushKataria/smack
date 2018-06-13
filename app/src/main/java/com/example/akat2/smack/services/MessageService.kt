@@ -5,6 +5,7 @@ import com.android.volley.Response
 import com.android.volley.toolbox.JsonArrayRequest
 import com.example.akat2.smack.controller.App
 import com.example.akat2.smack.model.Channel
+import com.example.akat2.smack.model.Message
 import com.example.akat2.smack.utilities.URL_GET_CHANNELS
 import org.json.JSONException
 
@@ -14,6 +15,7 @@ import org.json.JSONException
 object MessageService {
 
     val channels = ArrayList<Channel>()
+    val messages = ArrayList<Message>()
 
     fun getChannels(complete: (Boolean) -> Unit){
 
